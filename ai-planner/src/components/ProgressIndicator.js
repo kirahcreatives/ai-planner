@@ -54,8 +54,8 @@ const ProgressIndicator = ({ currentStep, steps }) => {
                                 {index < steps.length - 1 && (
                                     <div
                                         className={`flex-1 h-0.5 mx-4 ${index < currentStep
-                                                ? 'bg-green-500'
-                                                : 'bg-gray-300 dark:bg-gray-600'
+                                            ? 'bg-green-500'
+                                            : 'bg-gray-300 dark:bg-gray-600'
                                             }`}
                                         aria-hidden="true"
                                     />

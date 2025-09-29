@@ -134,14 +134,14 @@ const HelpCenter = () => {
                                 key={key}
                                 onClick={() => setActiveCategory(key)}
                                 className={`text-left p-6 rounded-lg shadow-sm transition-colors ${activeCategory === key
-                                        ? 'bg-blue-50 dark:bg-blue-900 border-2 border-blue-500'
-                                        : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'
+                                    ? 'bg-blue-50 dark:bg-blue-900 border-2 border-blue-500'
+                                    : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'
                                     }`}
                             >
                                 <div className="flex items-center mb-4">
                                     <div className={`${activeCategory === key
-                                            ? 'text-blue-600 dark:text-blue-400'
-                                            : 'text-gray-600 dark:text-gray-400'
+                                        ? 'text-blue-600 dark:text-blue-400'
+                                        : 'text-gray-600 dark:text-gray-400'
                                         }`}>
                                         {category.icon}
                                     </div>
