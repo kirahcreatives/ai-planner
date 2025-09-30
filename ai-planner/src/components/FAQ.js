@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useAuth } from '../contexts/AuthContext';
 
 const FAQItem = ({ question, answer }) => {
     const [isOpen, setIsOpen] = useState(false);
@@ -33,6 +34,11 @@ const FAQItem = ({ question, answer }) => {
 };
 
 const FAQ = () => {
+    const { user } = useAuth();
+    
+    // Don't render anything if user is logged in
+    if (user) return null;
+
     const faqs = [
         {
             question: 'How does AI Planner create my itinerary?',

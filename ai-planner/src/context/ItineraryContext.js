@@ -1,5 +1,8 @@
 import { createContext, useContext, useReducer } from 'react';
 import PropTypes from 'prop-types';
+import { itineraryService } from '../services/itineraryService';
+import { handleApiError } from '../utils/errorHandler';
+import { useError } from '../contexts/ErrorContext';
 
 const ItineraryContext = createContext();
 
@@ -55,6 +58,7 @@ const itineraryReducer = (state, action) => {
 
 export const ItineraryProvider = ({ children }) => {
     const [state, dispatch] = useReducer(itineraryReducer, initialState);
+    const { showError } = useError();
 
     const setLoading = (isLoading) => {
         dispatch({ type: actionTypes.SET_LOADING, payload: isLoading });
@@ -80,6 +84,32 @@ export const ItineraryProvider = ({ children }) => {
         dispatch({ type: actionTypes.RESET_FORM });
     };
 
+    const generateItinerary = async (formData) => {
+        try {
+            dispatch({ type: actionTypes.SET_LOADING, payload: true });
+            const data = await itineraryService.generateItinerary(formData);
+            dispatch({ type: actionTypes.SET_ITINERARY, payload: data });
+        } catch (error) {
+            const errorMessage = handleApiError(error);
+            showError(errorMessage);
+            dispatch({ type: actionTypes.SET_ERROR, payload: errorMessage });
+        }
+    };
+
+    const saveItinerary = async () => {
+        try {
+            if (!state.itinerary) return;
+
+            dispatch({ type: actionTypes.SET_LOADING, payload: true });
+            await itineraryService.saveItinerary(state.itinerary);
+            showError('Itinerary saved successfully!', 3000);
+        } catch (error) {
+            const errorMessage = handleApiError(error);
+            showError(errorMessage);
+            dispatch({ type: actionTypes.SET_ERROR, payload: errorMessage });
+        }
+    };
+
     const value = {
         ...state,
         setLoading,
@@ -88,6 +118,8 @@ export const ItineraryProvider = ({ children }) => {
         clearItinerary,
         updateFormData,
         resetForm,
+        generateItinerary,
+        saveItinerary
     };
 
     return (

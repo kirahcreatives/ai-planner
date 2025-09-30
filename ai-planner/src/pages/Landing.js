@@ -1,8 +1,10 @@
 import { Link } from 'react-router-dom';
+import { useAuth } from '../contexts/AuthContext';
 import FAQ from '../components/FAQ';
 import Pricing from '../components/Pricing';
 
 const Landing = () => {
+    const { user } = useAuth();
 
     return (
         <div className="min-h-screen">
@@ -19,20 +21,32 @@ const Landing = () => {
                             Let artificial intelligence create a custom travel itinerary based on your preferences, budget, and schedule.
                         </p>
                         <div className="mt-10 flex justify-center gap-4">
-                            <Link
-                                to="/create"
-                                className="px-8 py-3 text-lg font-medium rounded-lg bg-white text-blue-600 hover:bg-blue-50 
-                  dark:bg-blue-900 dark:text-white dark:hover:bg-blue-800 transition-colors duration-200"
-                            >
-                                Plan Your Trip
-                            </Link>
-                            <Link
-                                to="/how-it-works"
-                                className="px-8 py-3 text-lg font-medium rounded-lg border-2 border-white text-white 
-                  hover:bg-white hover:text-blue-600 dark:hover:bg-blue-900 transition-colors duration-200"
-                            >
-                                Learn More
-                            </Link>
+                            {!user ? (
+                                <>
+                                    <Link
+                                        to="/register"
+                                        className="px-8 py-3 text-lg font-medium rounded-lg bg-white text-blue-600 hover:bg-blue-50 
+                          dark:bg-blue-900 dark:text-white dark:hover:bg-blue-800 transition-colors duration-200"
+                                    >
+                                        Get Started
+                                    </Link>
+                                    <Link
+                                        to="/login"
+                                        className="px-8 py-3 text-lg font-medium rounded-lg border-2 border-white text-white 
+                          hover:bg-white hover:text-blue-600 dark:hover:bg-blue-900 transition-colors duration-200"
+                                    >
+                                        Sign In
+                                    </Link>
+                                </>
+                            ) : (
+                                <Link
+                                    to="/create"
+                                    className="px-8 py-3 text-lg font-medium rounded-lg bg-white text-blue-600 hover:bg-blue-50 
+                          dark:bg-blue-900 dark:text-white dark:hover:bg-blue-800 transition-colors duration-200"
+                                >
+                                    Create New Plan
+                                </Link>
+                            )}
                         </div>
                     </div>
                 </div>
@@ -143,23 +157,25 @@ const Landing = () => {
             </section>
 
             {/* CTA Section */}
-            <section className="py-20 bg-gradient-to-br from-blue-600 to-indigo-700 dark:from-blue-800 dark:to-indigo-900">
-                <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                    <h2 className="text-3xl font-bold text-white">
-                        Ready to Plan Your Next Adventure?
-                    </h2>
-                    <p className="mt-4 text-xl text-blue-100">
-                        Join thousands of happy travelers who have discovered the power of AI-powered trip planning.
-                    </p>
-                    <Link
-                        to="/create"
-                        className="mt-8 inline-block px-8 py-3 text-lg font-medium rounded-lg bg-white text-blue-600 
-              hover:bg-blue-50 dark:bg-blue-900 dark:text-white dark:hover:bg-blue-800 transition-colors duration-200"
-                    >
-                        Get Started for Free
-                    </Link>
-                </div>
-            </section>
+            {!user && (
+                <section className="py-20 bg-gradient-to-br from-blue-600 to-indigo-700 dark:from-blue-800 dark:to-indigo-900">
+                    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+                        <h2 className="text-3xl font-bold text-white">
+                            Ready to Plan Your Next Adventure?
+                        </h2>
+                        <p className="mt-4 text-xl text-blue-100">
+                            Join thousands of happy travelers who have discovered the power of AI-powered trip planning.
+                        </p>
+                        <Link
+                            to="/register"
+                            className="mt-8 inline-block px-8 py-3 text-lg font-medium rounded-lg bg-white text-blue-600 
+                  hover:bg-blue-50 dark:bg-blue-900 dark:text-white dark:hover:bg-blue-800 transition-colors duration-200"
+                        >
+                            Get Started for Free
+                        </Link>
+                    </div>
+                </section>
+            )}
 
             {/* Pricing Section */}
             <Pricing />

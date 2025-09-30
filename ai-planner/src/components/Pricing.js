@@ -1,3 +1,5 @@
+import { useAuth } from '../contexts/AuthContext';
+
 const PricingCard = ({ plan, isPopular }) => {
     return (
         <div className={`relative p-8 bg-white dark:bg-gray-800 rounded-2xl shadow-lg ${isPopular ? 'ring-2 ring-blue-500' : ''}`}>
@@ -37,6 +39,11 @@ const PricingCard = ({ plan, isPopular }) => {
 };
 
 const Pricing = () => {
+    const { user } = useAuth();
+    
+    // Don't render anything if user is logged in
+    if (user) return null;
+
     const plans = [
         {
             name: 'Basic',

@@ -20,9 +20,9 @@ router.post('/test-openai', async (req, res) => {
                 }
             ]
         });
-        
+
         console.log('OpenAI response received:', response);
-        
+
         res.json({
             success: true,
             message: 'OpenAI integration test successful',

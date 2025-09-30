@@ -7,15 +7,12 @@ const router = express.Router();
 
 // Validation middleware
 const itineraryValidation = [
-    body('destination').trim().notEmpty(),
-    body('startDate').isISO8601(),
-    body('endDate').isISO8601(),
-    body('interests').isArray(),
-    body('dailyHours').isFloat({ min: 1, max: 24 }),
-    body('pace').isIn(['relaxed', 'moderate', 'busy']),
-    body('budget').optional().isNumeric(),
-    body('budgetCurrency').optional().isLength({ min: 3, max: 3 })
-];
+    body('model').notEmpty().isString(),
+    body('messages').isArray({ min: 2 }),
+    body('messages.*.role').isString().isIn(['system', 'user']),
+    body('messages.*.content').isString().notEmpty(),
+    body('parameters.temperature').optional().isFloat({ min: 0, max: 2 }),
+    body('parameters.max_tokens').optional().isInt({ min: 1, max: 4000 })]
 
 // Protect all routes with authentication
 router.use(auth);

@@ -15,10 +15,12 @@ const userSchema = new mongoose.Schema({
     },
     firstName: {
         type: String,
+        required: true,
         trim: true
     },
     lastName: {
         type: String,
+        required: true,
         trim: true
     }
 }, {
@@ -27,21 +29,14 @@ const userSchema = new mongoose.Schema({
 
 // Add method to check password
 userSchema.methods.comparePassword = async function (password) {
-    return bcrypt.compare(password, this.passwordHash);
+    console.log('Password comparison:', {
+        providedPasswordLength: password?.length,
+        storedHashLength: this.passwordHash?.length
+    });
+    const result = await bcrypt.compare(password, this.passwordHash);
+    console.log('Bcrypt comparison result:', result);
+    return result;
 };
-
-// Hash password before saving
-userSchema.pre('save', async function (next) {
-    if (!this.isModified('passwordHash')) return next();
-
-    try {
-        const salt = await bcrypt.genSalt(10);
-        this.passwordHash = await bcrypt.hash(this.passwordHash, salt);
-        next();
-    } catch (error) {
-        next(error);
-    }
-});
 
 const User = mongoose.model('User', userSchema);
 

@@ -26,15 +26,24 @@ exports.register = async (req, res) => {
             return res.status(400).json({ message: 'User already exists' });
         }
 
+        console.log('Registration password length:', password?.length);
+        
+        // Hash password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(password, salt);
+        console.log('Generated hash length:', hashedPassword?.length);
+
         // Create new user
         const user = new User({
             email,
-            passwordHash: password, // Will be hashed by pre-save middleware
+            passwordHash: hashedPassword,
             firstName,
             lastName
         });
 
+        console.log('Saving user with hash length:', user.passwordHash?.length);
         await user.save();
+        console.log('User saved, final hash length:', user.passwordHash?.length);
 
         // Generate token
         const token = generateToken(user._id);
@@ -63,15 +72,21 @@ exports.login = async (req, res) => {
         }
 
         const { email, password } = req.body;
+        console.log('Login attempt:', { email, passwordLength: password?.length });
 
         // Find user by email
         const user = await User.findOne({ email });
+        console.log('User found:', user ? 'Yes' : 'No');
+        
         if (!user) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
 
         // Check password
+        console.log('Comparing passwords...');
         const isMatch = await user.comparePassword(password);
+        console.log('Password match:', isMatch ? 'Yes' : 'No');
+        
         if (!isMatch) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }

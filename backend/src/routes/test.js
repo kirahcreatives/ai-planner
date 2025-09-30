@@ -19,8 +19,8 @@ router.post('/test-openai', async (req, res) => {
         res.json({ success: true, data: result });
     } catch (error) {
         console.error('OpenAI Test Error:', error);
-        res.status(500).json({ 
-            success: false, 
+        res.status(500).json({
+            success: false,
             error: error.message,
             details: error.response?.data || 'No additional details available'
         });

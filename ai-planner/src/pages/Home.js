@@ -14,13 +14,35 @@ const Home = () => {
     const start = new Date(formData.startDate);
     const end = new Date(formData.endDate);
 
+    const validPaces = ['relaxed', 'moderate', 'intense'];
+    const minDailyHours = 1;
+    const maxDailyHours = 16;
+    const minBudget = 50;
+
     if (!formData.destination) errors.destination = 'Destination is required';
     if (!formData.startDate) errors.startDate = 'Start date is required';
     if (!formData.endDate) errors.endDate = 'End date is required';
     if (end < start) errors.endDate = 'End date must be after start date';
+    if (end.getTime() - start.getTime() > 90 * 24 * 60 * 60 * 1000) errors.endDate = 'Trip duration cannot exceed 90 days';
     if (!formData.interests) errors.interests = 'Interests are required';
+    if (formData.interests && formData.interests.split(',').length < 2) errors.interests = 'At least 2 interests are required';
+
     if (!formData.dailyHours) errors.dailyHours = 'Daily hours is required';
-    if (formData.dailyHours <= 0) errors.dailyHours = 'Daily hours must be greater than 0';
+    const dailyHours = parseFloat(formData.dailyHours);
+    if (isNaN(dailyHours) || dailyHours < minDailyHours || dailyHours > maxDailyHours) {
+      errors.dailyHours = `Daily hours must be between ${minDailyHours} and ${maxDailyHours}`;
+    }
+
+    if (!formData.budget) errors.budget = 'Budget is required';
+    const budget = parseFloat(formData.budget);
+    if (isNaN(budget) || budget < minBudget) {
+      errors.budget = `Budget must be at least ${minBudget} ${formData.budgetCurrency || 'USD'}`;
+    }
+
+    if (!formData.pace) errors.pace = 'Pace is required';
+    if (!validPaces.includes(formData.pace)) {
+      errors.pace = `Pace must be one of: ${validPaces.join(', ')}`;
+    }
     if (!formData.budget) errors.budget = 'Budget is required';
     if (parseFloat(formData.budget) <= 0) errors.budget = 'Budget must be greater than 0';
 
@@ -34,34 +56,113 @@ const Home = () => {
 
     setLoading(true);
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/generate`, {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('No authentication token found');
+      }
+
+      // Log request details for debugging
+      console.log('Making request to:', `${process.env.REACT_APP_API_URL}/itineraries/generate`);
+
+      // Debug API configuration
+      console.log('API Configuration:', {
+        baseUrl: process.env.REACT_APP_API_URL,
+        token: token ? 'Present' : 'Missing'
+      });
+
+      console.log('Raw form data:', JSON.stringify(formData, null, 2));
+
+      // Calculate trip duration
+      const tripDuration = Math.ceil((new Date(formData.endDate) - new Date(formData.startDate)) / (1000 * 60 * 60 * 24));
+
+      const requestBody = {
+        model: "gpt-3.5-turbo",
+        messages: [
+          {
+            role: "system",
+            content: `You are an expert travel planner who creates detailed, personalized itineraries. Format your response as a JSON object with daily activities.`
+          },
+          {
+            role: "user",
+            content: `Create a detailed ${tripDuration}-day itinerary for ${formData.destination} with the following requirements:
+- Budget: ${formData.budget} ${formData.budgetCurrency || 'USD'}
+- Travel dates: ${formData.startDate} to ${formData.endDate}
+- Interests: ${formData.interests}
+- Daily activity hours: ${formData.dailyHours} hours
+- Preferred pace: ${formData.pace}
+
+Please provide a day-by-day itinerary that includes:
+1. Specific attractions and activities
+2. Estimated duration for each activity
+3. Suggested times
+4. Transportation recommendations
+5. Restaurant recommendations
+6. Cultural tips and local customs
+7. Budget estimates for activities`
+          }
+        ],
+        parameters: {
+          temperature: 0.7,
+          max_tokens: 2000,
+          response_format: { type: "json_object" }
+        }
+      };      // Basic validation of the request
+      if (!requestBody.messages || requestBody.messages.length < 2) {
+        throw new Error('Invalid request structure');
+      }
+      if (!requestBody.model) {
+        throw new Error('OpenAI model must be specified');
+      }
+
+      console.log('Sending request with data:', JSON.stringify(requestBody, null, 2));
+
+      const response = await fetch(`${process.env.REACT_APP_API_URL}/itineraries/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({
-          destination: formData.destination,
-          budget: {
-            amount: parseFloat(formData.budget),
-            currency: formData.budgetCurrency
-          },
-          start_date: formData.startDate,
-          end_date: formData.endDate,
-          interests: formData.interests.split(',').map(i => i.trim()),
-          daily_hours: parseFloat(formData.dailyHours),
-          pace: formData.pace,
-        }),
+        body: JSON.stringify(requestBody)
       });
 
-      if (!response.ok) throw new Error('Failed to generate itinerary');
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Full server response:', errorData);
+
+        // Extract error messages
+        const errors = Array.isArray(errorData.errors)
+          ? errorData.errors.map(err => err.msg || err.message || err).filter(Boolean)
+          : [errorData.message || 'Failed to generate itinerary'];
+
+        console.error('Validation errors:', errors);
+
+        // Set a user-friendly error message
+        const errorMessage = errors.length > 0
+          ? errors.join('. ')
+          : 'Failed to generate itinerary. Please check your input and try again.';
+
+        setError(errorMessage);
+        throw new Error(errorMessage);
+      }
 
       const data = await response.json();
       setItinerary(data.itinerary);
       navigate('/results');
     } catch (error) {
-      setError(error.message);
+      console.error('Request failed:', error);
+
+      // Provide more specific error messages
+      let errorMessage = error.message;
+      if (error.message.includes('Failed to fetch') || error.name === 'TypeError') {
+        errorMessage = 'Network error: Unable to connect to the server. Please check your internet connection.';
+      } else if (error.message.includes('CORS')) {
+        errorMessage = 'Server configuration error: Please contact support.';
+      }
+
+      setError(errorMessage);
       setFormErrors({
-        submit: 'Failed to generate itinerary. Please try again.'
+        submit: errorMessage
       });
     }
   };
