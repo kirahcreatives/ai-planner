@@ -27,7 +27,7 @@ exports.register = async (req, res) => {
         }
 
         console.log('Registration password length:', password?.length);
-        
+
         // Hash password
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
@@ -77,7 +77,7 @@ exports.login = async (req, res) => {
         // Find user by email
         const user = await User.findOne({ email });
         console.log('User found:', user ? 'Yes' : 'No');
-        
+
         if (!user) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }
@@ -86,7 +86,7 @@ exports.login = async (req, res) => {
         console.log('Comparing passwords...');
         const isMatch = await user.comparePassword(password);
         console.log('Password match:', isMatch ? 'Yes' : 'No');
-        
+
         if (!isMatch) {
             return res.status(401).json({ message: 'Invalid credentials' });
         }

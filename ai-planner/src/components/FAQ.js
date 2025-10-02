@@ -35,7 +35,7 @@ const FAQItem = ({ question, answer }) => {
 
 const FAQ = () => {
     const { user } = useAuth();
-    
+
     // Don't render anything if user is logged in
     if (user) return null;
 

@@ -40,7 +40,7 @@ const PricingCard = ({ plan, isPopular }) => {
 
 const Pricing = () => {
     const { user } = useAuth();
-    
+
     // Don't render anything if user is logged in
     if (user) return null;
 

@@ -8,7 +8,7 @@ export const authService = {
                 ...credentials,
                 email: credentials.email.toLowerCase().trim()
             };
-            
+
             console.log('Sending login data:', normalizedCredentials);
             const response = await api.post('/auth/login', normalizedCredentials);
             console.log('Login response:', response);
@@ -26,7 +26,7 @@ export const authService = {
                 ...userData,
                 email: userData.email.toLowerCase().trim()
             };
-            
+
             console.log('Sending registration data:', normalizedUserData);
             const response = await api.post('/auth/register', normalizedUserData);
             console.log('Registration response:', response);
